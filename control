@@ -1,0 +1,100 @@
+import serial
+import time
+from dynamixel_sdk import *
+
+DXL_ID                      = 1
+PROTOCOL_VERSION            = 1.0
+BAUDRATE                    = 115200
+
+portHandler = PortHandler('COM4')
+portHandler.setPacketTimeoutMillis(200)
+packetHandler = PacketHandler(PROTOCOL_VERSION)
+
+def write2byte(addres, data):
+    dxl_comm_result, dxl_error = packetHandler.write2ByteTxRx(portHandler, DXL_ID, addres, data)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+def write1byte(addres, data):
+    dxl_comm_result, dxl_error = packetHandler.write1ByteTxRx(portHandler, DXL_ID, addres, data)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
+
+# Open port
+if portHandler.openPort():
+    print("Succeeded to open the port")
+else:
+    print("Failed to open the port")
+
+# Set port baudrate
+if portHandler.setBaudRate(BAUDRATE):
+    print("Succeeded to change the baudrate")
+else:
+    print("Failed to change the baudrate")
+
+dxl_model_number, dxl_comm_result, dxl_error = packetHandler.ping(portHandler, DXL_ID)
+if dxl_comm_result != COMM_SUCCESS:
+    print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+elif dxl_error != 0:
+    print("%s" % packetHandler.getRxPacketError(dxl_error))
+else:
+    print("[ID:%03d] ping Succeeded. Dynamixel model number : %d" % (DXL_ID, dxl_model_number))
+
+while True:
+    print("1 - set P, 2 - set I, 3 - set D, 4 - turn to angle, 5 - ping, 6 - eeprom, 7 - enable, 8 - set max pwm 9 - set pwm max inc, 10 - set offset 11 - set id 0 - exit")
+    command = int(input())
+    if command == 1:
+        data = int(input('P: '))
+        write1byte(28,data)
+
+    elif command == 2:
+        data = int(input('I: '))
+        write1byte(27,data)
+
+    elif command == 3:
+        data = int(input('D: '))
+        write1byte(26,data)
+
+    elif command == 6:
+        data = int(input('EEPROM: '))
+        write1byte(47,data)
+
+    elif command == 7:
+        data = int(input('enable: '))
+        write1byte(24,data)
+
+    elif command == 8:
+        data = int(input('pwm max: '))
+        write2byte(14,data)
+
+    elif command == 9:
+        data = int(input('pwm max: '))
+        write2byte(16,data)
+
+    elif command == 10:
+        data = int(input('angle offset: '))
+        write2byte(20,data)
+
+    elif command == 11:
+        data = int(input('new id: '))
+        write1byte(3,data)
+
+    elif command == 4:
+        ang = int(input('angle : '))
+        write2byte(30, ang)
+
+    elif command == 5:
+        dxl_model_number, dxl_comm_result, dxl_error = packetHandler.ping(portHandler, DXL_ID)
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+        elif dxl_error != 0:
+            print("%s" % packetHandler.getRxPacketError(dxl_error))
+        else:
+            print("[ID:%03d] ping Succeeded. Dynamixel model number : %d" % (DXL_ID, dxl_model_number))
+
+    elif command == 0:
+        quit()
