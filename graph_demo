@@ -1,0 +1,53 @@
+import serial
+import time
+from dynamixel_sdk import *
+from ilisha import Ilusha
+
+import matplotlib.pyplot as plt
+
+BAUDRATE                    = 115200
+
+portHandler = PortHandler('COM4')
+portHandler.setPacketTimeoutMillis(200)
+
+if portHandler.openPort():
+    print("Succeeded to open the port")
+else:
+    print("Failed to open the port")
+
+# Set port baudrate
+if portHandler.setBaudRate(BAUDRATE):
+    print("Succeeded to change the baudrate")
+else:
+    print("Failed to change the baudrate")
+
+il = Ilusha(portHandler, 1)
+
+angle = []
+curr = []
+volts = []
+
+il.set_PID_P(4)
+il.set_PID_I(1)
+il.set_PID_D(2)
+il.set_max_pwm(1000)
+il.set_max_pwm_inc(128)
+il.set_angle(8000)
+il.set_enable(1)
+for i in range(100):
+    angle.append(il.get_angle())
+    curr.append(il.get_current()*2)
+    volts.append(il.get_volts()*100)
+    time.sleep(0.02)
+    #print(angle[-1])
+
+il.set_angle(0)
+time.sleep(2)
+il.set_enable(0)
+
+plt.plot(angle,'r', label = 'Angle')
+plt.plot(curr, 'b', label = 'Current')
+plt.plot(volts, 'g', label = 'Voltage')
+
+plt.legend()
+plt.show()
